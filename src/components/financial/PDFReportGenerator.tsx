@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FileText, Download, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { Transacao } from "@/lib/db";
 
 interface PDFReportGeneratorProps {
@@ -67,7 +67,7 @@ export function PDFReportGenerator({ transactions, getTransactionsByPeriod }: PD
           `R$ ${transaction.valor.toFixed(2)}`
         ]);
         
-        (doc as any).autoTable({
+        autoTable(doc, {
           startY: 145,
           head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
           body: tableData,
@@ -96,7 +96,7 @@ export function PDFReportGenerator({ transactions, getTransactionsByPeriod }: PD
       // Gráfico de categorias (se houver transações)
       if (periodTransactions.length > 0) {
         const categoryData = getCategoryData(periodTransactions);
-        const chartY = (doc as any).lastAutoTable.finalY + 20;
+        const chartY = 145 + (periodTransactions.length * 8) + 40; // Posição aproximada após a tabela
         
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
