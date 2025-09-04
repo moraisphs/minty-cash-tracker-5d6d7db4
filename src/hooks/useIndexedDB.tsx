@@ -1,49 +1,53 @@
 import { useState, useEffect } from 'react';
-import { db, Transacao, initializeSampleData, exportData, importData } from '@/lib/db';
+import { db, Transacao, Categoria, initializeSampleData, exportData, importData, clearSampleData, hasSampleData, resetDatabase, getDatabaseStatus, fixExistingCategories } from '@/lib/db';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Category {
   id: string;
   name: string;
   type: 'income' | 'expense';
-  icon?: string;
   color?: string;
   budget_limit?: number;
-  is_default?: boolean;
+  is_default: boolean;
 }
-
-// Categorias padrão
-const defaultCategories: Category[] = [
-  { id: '1', name: 'Alimentação', type: 'expense', icon: 'ShoppingBag', is_default: true },
-  { id: '2', name: 'Transporte', type: 'expense', icon: 'Car', is_default: true },
-  { id: '3', name: 'Moradia', type: 'expense', icon: 'Home', is_default: true },
-  { id: '4', name: 'Lazer', type: 'expense', icon: 'Gamepad2', is_default: true },
-  { id: '5', name: 'Saúde', type: 'expense', icon: 'Heart', is_default: true },
-  { id: '6', name: 'Educação', type: 'expense', icon: 'BookOpen', is_default: true },
-  { id: '7', name: 'Salário', type: 'income', icon: 'TrendingUp', is_default: true },
-  { id: '8', name: 'Freelance', type: 'income', icon: 'Briefcase', is_default: true },
-  { id: '9', name: 'Investimentos', type: 'income', icon: 'PiggyBank', is_default: true },
-  { id: '10', name: 'Outros', type: 'income', icon: 'Plus', is_default: true },
-];
 
 export function useIndexedDB() {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transacao[]>([]);
-  const [categories, setCategories] = useState<Category[]>(defaultCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Carregar dados do IndexedDB
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('=== CARREGANDO DADOS ===');
         setLoading(true);
         
         // Inicializar dados de exemplo se necessário
         await initializeSampleData();
         
-        // Carregar transações
-        const transacoes = await db.transacoes.orderBy('data').reverse().toArray();
+        // Carregar transações e categorias
+        console.log('Carregando transações e categorias...');
+        const [transacoes, categorias] = await Promise.all([
+          db.transacoes.orderBy('data').reverse().toArray(),
+          db.categorias.toArray()
+        ]);
+        
+        console.log('Transações carregadas:', transacoes.length);
+        console.log('Categorias carregadas:', categorias.length);
+        console.log('Transações:', transacoes);
+        console.log('Categorias:', categorias);
+        console.log('Verificação is_default das categorias:', categorias.map(cat => ({ 
+          name: cat.name, 
+          is_default: cat.is_default, 
+          type: typeof cat.is_default 
+        })));
+        
         setTransactions(transacoes);
+        setCategories(categorias);
+        
+        console.log('=== DADOS CARREGADOS COM SUCESSO ===');
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
         toast({
@@ -70,7 +74,11 @@ export function useIndexedDB() {
     notes?: string;
   }) => {
     try {
+      console.log('=== ADICIONANDO TRANSAÇÃO ===');
+      console.log('Dados recebidos:', transactionData);
+      
       const category = categories.find(c => c.id === transactionData.category_id);
+      console.log('Categoria encontrada:', category);
       
       const newTransacao: Omit<Transacao, 'id'> = {
         tipo: transactionData.type === 'income' ? 'entrada' : 'saida',
@@ -80,22 +88,29 @@ export function useIndexedDB() {
         descricao: transactionData.description
       };
 
+      console.log('Nova transação a ser salva:', newTransacao);
+      
       const id = await db.transacoes.add(newTransacao);
+      console.log('ID da transação salva:', id);
+      
       const savedTransacao = { ...newTransacao, id };
       
       setTransactions(prev => [savedTransacao, ...prev]);
+      console.log('Estado local atualizado');
 
       toast({
         title: "Transação adicionada!",
         description: `${transactionData.type === 'income' ? 'Receita' : 'Despesa'} de R$ ${transactionData.amount.toFixed(2)} foi registrada.`,
       });
 
+      console.log('=== TRANSAÇÃO ADICIONADA COM SUCESSO ===');
       return savedTransacao;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao adicionar transação:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao adicionar transação",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -120,12 +135,16 @@ export function useIndexedDB() {
         throw new Error('Já existe uma categoria com este nome e tipo');
       }
 
-      const newCategory: Category = {
+      const newCategory: Categoria = {
         id: Date.now().toString(),
         ...categoryData,
         is_default: false
       };
 
+      // Salvar no IndexedDB
+      await db.categorias.add(newCategory);
+      
+      // Atualizar estado local
       setCategories(prev => [...prev, newCategory]);
 
       toast({
@@ -134,11 +153,12 @@ export function useIndexedDB() {
       });
 
       return newCategory;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao criar categoria:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao criar categoria",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -147,39 +167,34 @@ export function useIndexedDB() {
 
   // Excluir categoria
   const deleteCategory = async (categoryId: string) => {
+    console.log('=== FUNÇÃO deleteCategory CHAMADA ===');
+    console.log('categoryId recebido:', categoryId);
+    console.log('Categorias disponíveis:', categories);
+    
     try {
       const category = categories.find(cat => cat.id === categoryId);
+      console.log('Categoria encontrada:', category);
       
       if (!category) {
         throw new Error('Categoria não encontrada');
       }
 
-      if (category.is_default) {
-        throw new Error('Não é possível excluir categorias padrão');
-      }
-
-      // Verificar se há transações usando esta categoria
-      const transactionsUsingCategory = transactions.filter(
-        t => t.categoria === category.name
-      );
-
-      if (transactionsUsingCategory.length > 0) {
-        throw new Error(`Não é possível excluir. Existem ${transactionsUsingCategory.length} transação(ões) usando esta categoria.`);
-      }
-
+      console.log('Excluindo categoria do IndexedDB...');
+      await db.categorias.delete(categoryId);
+      console.log('Categoria excluída do IndexedDB');
+      
+      console.log('Atualizando estado local...');
       setCategories(prev => prev.filter(cat => cat.id !== categoryId));
+      console.log('Estado local atualizado');
 
-      toast({
-        title: "Categoria excluída",
-        description: `A categoria "${category.name}" foi excluída com sucesso.`,
-      });
-
+      console.log('Categoria excluída com sucesso!');
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao excluir categoria:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao excluir categoria",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -215,10 +230,11 @@ export function useIndexedDB() {
       case 'month':
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
-      case 'quarter':
+      case 'quarter': {
         const quarterStart = Math.floor(now.getMonth() / 3) * 3;
         startDate = new Date(now.getFullYear(), quarterStart, 1);
         break;
+      }
       case 'year':
         startDate = new Date(now.getFullYear(), 0, 1);
         break;
@@ -283,11 +299,12 @@ export function useIndexedDB() {
       });
 
       return updatedTransacao;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao editar transação:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao editar transação",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -307,11 +324,12 @@ export function useIndexedDB() {
       });
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao excluir transação:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao excluir transação",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -324,8 +342,13 @@ export function useIndexedDB() {
       const success = await importData(file);
       if (success) {
         // Recarregar dados
-        const transacoes = await db.transacoes.orderBy('data').reverse().toArray();
+        const [transacoes, categorias] = await Promise.all([
+          db.transacoes.orderBy('data').reverse().toArray(),
+          db.categorias.toArray()
+        ]);
+        
         setTransactions(transacoes);
+        setCategories(categorias);
         
         toast({
           title: "Dados importados!",
@@ -338,6 +361,98 @@ export function useIndexedDB() {
       toast({
         title: "Erro ao importar dados",
         description: "Não foi possível importar os dados. Verifique o arquivo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Limpar dados fictícios
+  const handleClearSampleData = async () => {
+    try {
+      const success = await clearSampleData();
+      if (success) {
+        // Recarregar dados
+        const transacoes = await db.transacoes.orderBy('data').reverse().toArray();
+        setTransactions(transacoes);
+        
+        toast({
+          title: "Dados fictícios removidos!",
+          description: "Os dados de exemplo foram removidos com sucesso.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao remover dados fictícios",
+        description: "Não foi possível remover os dados de exemplo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Resetar banco de dados
+  const handleResetDatabase = async () => {
+    try {
+      const success = await resetDatabase();
+      if (success) {
+        // Recarregar dados
+        const [transacoes, categorias] = await Promise.all([
+          db.transacoes.orderBy('data').reverse().toArray(),
+          db.categorias.toArray()
+        ]);
+        
+        setTransactions(transacoes);
+        setCategories(categorias);
+        
+        toast({
+          title: "Banco resetado!",
+          description: "O banco de dados foi resetado completamente.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao resetar banco",
+        description: "Não foi possível resetar o banco de dados.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Verificar status do banco
+  const handleCheckDatabaseStatus = async () => {
+    try {
+      const status = await getDatabaseStatus();
+      console.log('=== STATUS DO BANCO DE DADOS ===');
+      console.log('Status:', status);
+      
+      toast({
+        title: "Status do banco",
+        description: `Transações: ${status?.transactionCount}, Categorias: ${status?.categoryCount}`,
+      });
+    } catch (error) {
+      console.error('Erro ao verificar status:', error);
+    }
+  };
+
+  const handleFixCategories = async () => {
+    try {
+      console.log('Corrigindo categorias...');
+      await fixExistingCategories();
+      // Recarregar dados após correção
+      const [transacoes, categorias] = await Promise.all([
+        db.transacoes.toArray(),
+        db.categorias.toArray()
+      ]);
+      setTransactions(transacoes);
+      setCategories(categorias);
+      toast({
+        title: "Categorias corrigidas",
+        description: "As categorias foram corrigidas com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao corrigir categorias:', error);
+      toast({
+        title: "Erro ao corrigir categorias",
+        description: "Ocorreu um erro ao corrigir as categorias.",
         variant: "destructive",
       });
     }
@@ -356,5 +471,9 @@ export function useIndexedDB() {
     getTransactionsByPeriod,
     exportData: handleExportData,
     importData: handleImportData,
+    clearSampleData: handleClearSampleData,
+    resetDatabase: handleResetDatabase,
+    checkDatabaseStatus: handleCheckDatabaseStatus,
+    fixCategories: handleFixCategories,
   };
 }

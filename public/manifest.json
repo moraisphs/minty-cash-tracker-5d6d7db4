@@ -1,6 +1,6 @@
 {
-  "name": "MyCash - Controle Financeiro",
-  "short_name": "MyCash",
+  "name": "Meu Dinheiro - Controle Financeiro",
+  "short_name": "Meu Dinheiro",
   "description": "Controle suas finanças pessoais de forma simples e eficiente",
   "start_url": "/",
   "display": "standalone",

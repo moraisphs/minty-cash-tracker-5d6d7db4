@@ -21,29 +21,25 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Settings } from "lucide-react";
 import { Category } from "@/hooks/useIndexedDB";
+import { useToast } from "@/hooks/use-toast";
 
 interface CategoryManagerProps {
   categories: Category[];
   onAddCategory: (data: {
     name: string;
     type: 'income' | 'expense';
-    icon?: string;
     color?: string;
-  }) => Promise<any>;
-  onDeleteCategory: (categoryId: string) => Promise<any>;
+  }) => Promise<void>;
+  onDeleteCategory: (categoryId: string) => Promise<void>;
 }
 
-const availableIcons = [
-  'ShoppingBag', 'Car', 'Home', 'Gamepad2', 'Heart', 'BookOpen',
-  'TrendingUp', 'Briefcase', 'PiggyBank', 'Plus', 'Coffee', 'Plane',
-  'Gift', 'Music', 'Camera', 'Smartphone', 'Laptop', 'Shirt'
-];
 
 export function CategoryManager({ categories, onAddCategory, onDeleteCategory }: CategoryManagerProps) {
   const [open, setOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryType, setNewCategoryType] = useState<'income' | 'expense'>('expense');
-  const [newCategoryIcon, setNewCategoryIcon] = useState("Plus");
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
@@ -52,28 +48,73 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
       await onAddCategory({
         name: newCategoryName.trim(),
         type: newCategoryType,
-        icon: newCategoryIcon,
       });
 
       // Reset form
       setNewCategoryName("");
       setNewCategoryType("expense");
-      setNewCategoryIcon("Plus");
     } catch (error) {
       // Error is handled by the hook
     }
   };
 
-  const handleDeleteCategory = async (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string, categoryName: string) => {
+    console.log('=== INICIANDO EXCLUSÃO ===');
+    console.log('ID da categoria:', categoryId);
+    console.log('Nome da categoria:', categoryName);
+    console.log('Função onDeleteCategory:', typeof onDeleteCategory);
+    
     try {
+      if (!onDeleteCategory) {
+        throw new Error('Função onDeleteCategory não está definida');
+      }
+      
+      setDeletingCategoryId(categoryId);
+      console.log('Chamando onDeleteCategory...');
       await onDeleteCategory(categoryId);
+      console.log('Categoria excluída com sucesso');
+      
+      toast({
+        title: "Categoria excluída!",
+        description: `A categoria "${categoryName}" foi removida com sucesso.`,
+      });
     } catch (error) {
-      // Error is handled by the hook
+      console.error('Erro ao excluir categoria:', error);
+      toast({
+        title: "Erro ao excluir categoria",
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingCategoryId(null);
     }
   };
 
-  const userCategories = categories.filter(cat => !cat.is_default);
-  const defaultCategories = categories.filter(cat => cat.is_default);
+  // Filtrar categorias de forma mais robusta
+  const userCategories = categories.filter(cat => {
+    // Categoria personalizada: não é uma das categorias padrão conhecidas
+    const isDefaultCategory = [
+      'Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Educação',
+      'Salário', 'Freelance', 'Investimentos', 'Outros'
+    ].includes(cat.name);
+    
+    return !isDefaultCategory;
+  });
+  
+  const defaultCategories = categories.filter(cat => {
+    // Categoria padrão: é uma das categorias padrão conhecidas
+    const isDefaultCategory = [
+      'Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Educação',
+      'Salário', 'Freelance', 'Investimentos', 'Outros'
+    ].includes(cat.name);
+    
+    return isDefaultCategory;
+  });
+  
+  console.log('=== DEBUG CATEGORIAS ===');
+  console.log('Categorias recebidas:', categories.length);
+  console.log('Categorias personalizadas:', userCategories.length);
+  console.log('Categorias padrão:', defaultCategories.length);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -83,7 +124,7 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
           Gerenciar Categorias
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Gerenciar Categorias</DialogTitle>
           <DialogDescription>
@@ -95,7 +136,7 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
           {/* Adicionar Nova Categoria */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Adicionar Nova Categoria</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="categoryName">Nome</Label>
                 <Input
@@ -117,22 +158,6 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="categoryIcon">Ícone</Label>
-              <Select value={newCategoryIcon} onValueChange={setNewCategoryIcon}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableIcons.map((icon) => (
-                    <SelectItem key={icon} value={icon}>
-                      {icon}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <Button onClick={handleAddCategory} className="w-full">
@@ -164,8 +189,19 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteCategory(category.id!)}
-                        className="text-destructive hover:text-destructive"
+                        onClick={() => {
+                          console.log('Botão de excluir clicado para categoria:', category.name);
+                          console.log('ID da categoria:', category.id);
+                          if (confirm(`Tem certeza que deseja excluir a categoria "${category.name}"? Esta ação não pode ser desfeita.`)) {
+                            console.log('Confirmação aceita, chamando handleDeleteCategory');
+                            handleDeleteCategory(category.id!, category.name);
+                          } else {
+                            console.log('Confirmação cancelada');
+                          }
+                        }}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        type="button"
+                        disabled={deletingCategoryId === category.id}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -190,7 +226,25 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
                       </Badge>
                       <span className="font-medium">{category.name}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">Padrão</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        console.log('Botão de excluir clicado para categoria padrão:', category.name);
+                        console.log('ID da categoria:', category.id);
+                        if (confirm(`Tem certeza que deseja excluir a categoria padrão "${category.name}"? Esta ação não pode ser desfeita.`)) {
+                          console.log('Confirmação aceita, chamando handleDeleteCategory');
+                          handleDeleteCategory(category.id!, category.name);
+                        } else {
+                          console.log('Confirmação cancelada');
+                        }
+                      }}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      type="button"
+                      disabled={deletingCategoryId === category.id}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </div>

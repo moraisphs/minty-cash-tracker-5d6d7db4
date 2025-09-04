@@ -35,7 +35,7 @@ export function PWAInstaller() {
       setDeferredPrompt(null);
       toast({
         title: "App instalado!",
-        description: "MyCash foi instalado com sucesso no seu dispositivo.",
+        description: "Meu Dinheiro foi instalado com sucesso no seu dispositivo.",
       });
     });
 
@@ -73,7 +73,7 @@ export function PWAInstaller() {
       <div className="bg-card border border-border rounded-lg shadow-lg p-4 space-y-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="font-semibold text-sm">Instalar MyCash</h3>
+            <h3 className="font-semibold text-sm">Instalar Meu Dinheiro</h3>
             <p className="text-xs text-muted-foreground mt-1">
               Instale o app para acesso rápido e uso offline
             </p>

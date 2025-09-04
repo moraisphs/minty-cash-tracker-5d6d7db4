@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, User } from "lucide-react";
 import { DashboardCard } from "@/components/financial/DashboardCard";
@@ -35,6 +35,7 @@ export default function Dashboard() {
     getBalance, 
     getTransactionsByPeriod
   } = useIndexedDB();
+
 
   if (loading) {
     return (
@@ -74,6 +75,7 @@ export default function Dashboard() {
   const handleDeleteTransaction = async (transactionId: number) => {
     return await deleteTransaction(transactionId);
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/5 p-4 md:p-6">
