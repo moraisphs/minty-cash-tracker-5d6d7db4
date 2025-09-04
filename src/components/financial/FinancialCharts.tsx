@@ -34,13 +34,13 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
   }));
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 xs:gap-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Entradas vs Saídas</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
                 data={pieData}
@@ -80,7 +80,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
           <CardTitle className="text-lg">Gastos por Categoria</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={200}>
             <BarChart data={categoryData}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis 

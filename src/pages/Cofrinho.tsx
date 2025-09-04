@@ -161,31 +161,31 @@ export default function Cofrinho() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/5 p-4 md:p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/5 p-3 xs:p-4 md:p-6">
+      <div className="mx-auto max-w-7xl space-y-4 xs:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-3">
-              <PiggyBank className="h-8 w-8" />
+        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3 xs:gap-4">
+          <div className="text-center xs:text-left">
+            <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center justify-center xs:justify-start gap-2 xs:gap-3">
+              <PiggyBank className="h-6 w-6 xs:h-8 xs:w-8" />
               Meu Cofrinho
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            <p className="text-xs xs:text-sm sm:text-base text-muted-foreground mt-1">
               Monitore suas metas de economia e veja seu progresso
             </p>
           </div>
           
           <Button 
             onClick={() => setMostrarFormulario(!mostrarFormulario)}
-            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 w-full xs:w-auto text-sm"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-1 xs:mr-2 h-4 w-4" />
             Nova Meta
           </Button>
         </div>
 
         {/* Resumo Geral */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 xs:gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Economia Total</CardTitle>
@@ -239,7 +239,7 @@ export default function Cofrinho() {
               <CardTitle>Criar Nova Meta de Economia</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome da Meta</Label>
                   <Input

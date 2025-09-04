@@ -124,7 +124,7 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
           Gerenciar Categorias
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[500px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[85vh] overflow-y-auto mx-2 xs:mx-4">
         <DialogHeader>
           <DialogTitle>Gerenciar Categorias</DialogTitle>
           <DialogDescription>
@@ -136,7 +136,7 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
           {/* Adicionar Nova Categoria */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Adicionar Nova Categoria</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4">
               <div className="space-y-2">
                 <Label htmlFor="categoryName">Nome</Label>
                 <Input

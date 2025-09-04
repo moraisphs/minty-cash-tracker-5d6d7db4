@@ -36,7 +36,8 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             <Wallet className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-           May MyCash 
+           May 
+           Cash 
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Transforme sua vida financeira com inteligência e simplicidade

@@ -96,7 +96,7 @@ export function AddTransactionDialog({ categories, onAddTransaction, onAddCatego
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto mx-2 xs:mx-4">
         <DialogHeader>
           <DialogTitle>Adicionar Transação</DialogTitle>
           <DialogDescription>
@@ -129,7 +129,7 @@ export function AddTransactionDialog({ categories, onAddTransaction, onAddCatego
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4">
             <div className="space-y-2">
               <Label htmlFor="amount">Valor</Label>
               <Input
