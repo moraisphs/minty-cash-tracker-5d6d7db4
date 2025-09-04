@@ -20,9 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Category } from "@/hooks/useIndexedDB";
+import { CategoryManager } from "./CategoryManager";
 
 interface AddTransactionDialogProps {
   categories: Category[];
@@ -35,10 +36,17 @@ interface AddTransactionDialogProps {
     tags?: string[];
     notes?: string;
   }) => Promise<any>;
+  onAddCategory: (data: {
+    name: string;
+    type: 'income' | 'expense';
+    icon?: string;
+    color?: string;
+  }) => Promise<any>;
+  onDeleteCategory: (categoryId: string) => Promise<any>;
   children: ReactNode;
 }
 
-export function AddTransactionDialog({ categories, onAddTransaction, children }: AddTransactionDialogProps) {
+export function AddTransactionDialog({ categories, onAddTransaction, onAddCategory, onDeleteCategory, children }: AddTransactionDialogProps) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
@@ -147,7 +155,14 @@ export function AddTransactionDialog({ categories, onAddTransaction, children }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Categoria</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="category">Categoria</Label>
+              <CategoryManager 
+                categories={categories}
+                onAddCategory={onAddCategory}
+                onDeleteCategory={onDeleteCategory}
+              />
+            </div>
             <Select value={category} onValueChange={setCategory} required>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma categoria" />

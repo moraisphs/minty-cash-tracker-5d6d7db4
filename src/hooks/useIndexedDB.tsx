@@ -29,7 +29,7 @@ const defaultCategories: Category[] = [
 export function useIndexedDB() {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transacao[]>([]);
-  const [categories] = useState<Category[]>(defaultCategories);
+  const [categories, setCategories] = useState<Category[]>(defaultCategories);
   const [loading, setLoading] = useState(true);
 
   // Carregar dados do IndexedDB
@@ -102,27 +102,88 @@ export function useIndexedDB() {
     }
   };
 
-  // Adicionar categoria (mantido para compatibilidade)
+  // Adicionar categoria
   const addCategory = async (categoryData: {
     name: string;
     type: 'income' | 'expense';
     icon?: string;
     color?: string;
   }) => {
-    // Por enquanto, apenas retorna uma categoria mock
-    // Em uma implementação futura, isso poderia ser salvo no IndexedDB também
-    const newCategory: Category = {
-      id: Date.now().toString(),
-      ...categoryData,
-      is_default: false
-    };
+    try {
+      // Verificar se já existe uma categoria com o mesmo nome e tipo
+      const existingCategory = categories.find(
+        cat => cat.name.toLowerCase() === categoryData.name.toLowerCase() && 
+               cat.type === categoryData.type
+      );
 
-    toast({
-      title: "Categoria criada",
-      description: `A categoria "${categoryData.name}" foi criada com sucesso.`,
-    });
+      if (existingCategory) {
+        throw new Error('Já existe uma categoria com este nome e tipo');
+      }
 
-    return newCategory;
+      const newCategory: Category = {
+        id: Date.now().toString(),
+        ...categoryData,
+        is_default: false
+      };
+
+      setCategories(prev => [...prev, newCategory]);
+
+      toast({
+        title: "Categoria criada",
+        description: `A categoria "${categoryData.name}" foi criada com sucesso.`,
+      });
+
+      return newCategory;
+    } catch (error: any) {
+      console.error('Erro ao criar categoria:', error);
+      toast({
+        title: "Erro ao criar categoria",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  // Excluir categoria
+  const deleteCategory = async (categoryId: string) => {
+    try {
+      const category = categories.find(cat => cat.id === categoryId);
+      
+      if (!category) {
+        throw new Error('Categoria não encontrada');
+      }
+
+      if (category.is_default) {
+        throw new Error('Não é possível excluir categorias padrão');
+      }
+
+      // Verificar se há transações usando esta categoria
+      const transactionsUsingCategory = transactions.filter(
+        t => t.categoria === category.name
+      );
+
+      if (transactionsUsingCategory.length > 0) {
+        throw new Error(`Não é possível excluir. Existem ${transactionsUsingCategory.length} transação(ões) usando esta categoria.`);
+      }
+
+      setCategories(prev => prev.filter(cat => cat.id !== categoryId));
+
+      toast({
+        title: "Categoria excluída",
+        description: `A categoria "${category.name}" foi excluída com sucesso.`,
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Erro ao excluir categoria:', error);
+      toast({
+        title: "Erro ao excluir categoria",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   // Calcular saldo
@@ -219,6 +280,7 @@ export function useIndexedDB() {
     loading,
     addTransaction,
     addCategory,
+    deleteCategory,
     getBalance,
     getTransactionsByPeriod,
     exportData: handleExportData,

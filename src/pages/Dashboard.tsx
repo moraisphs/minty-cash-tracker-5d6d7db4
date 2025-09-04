@@ -27,6 +27,8 @@ export default function Dashboard() {
     categories, 
     loading, 
     addTransaction, 
+    addCategory,
+    deleteCategory,
     getBalance, 
     getTransactionsByPeriod,
     exportData,
@@ -104,6 +106,8 @@ export default function Dashboard() {
             <AddTransactionDialog 
               categories={categories}
               onAddTransaction={addTransaction}
+              onAddCategory={addCategory}
+              onDeleteCategory={deleteCategory}
             >
               <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg">
                 <Plus className="mr-2 h-4 w-4" />
