@@ -249,6 +249,75 @@ export function useIndexedDB() {
     }
   };
 
+  // Editar transação
+  const editTransaction = async (transactionId: number, transactionData: {
+    description: string;
+    amount: number;
+    type: 'income' | 'expense';
+    transaction_date: string;
+    category_id: string;
+    tags?: string[];
+    notes?: string;
+  }) => {
+    try {
+      const category = categories.find(c => c.id === transactionData.category_id);
+      
+      const updatedTransacao: Transacao = {
+        id: transactionId,
+        tipo: transactionData.type === 'income' ? 'entrada' : 'saida',
+        valor: transactionData.amount,
+        data: new Date(transactionData.transaction_date),
+        categoria: category?.name || 'Outros',
+        descricao: transactionData.description
+      };
+
+      await db.transacoes.update(transactionId, updatedTransacao);
+      
+      setTransactions(prev => 
+        prev.map(t => t.id === transactionId ? updatedTransacao : t)
+      );
+
+      toast({
+        title: "Transação editada!",
+        description: `${transactionData.type === 'income' ? 'Receita' : 'Despesa'} foi atualizada com sucesso.`,
+      });
+
+      return updatedTransacao;
+    } catch (error: any) {
+      console.error('Erro ao editar transação:', error);
+      toast({
+        title: "Erro ao editar transação",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  // Excluir transação
+  const deleteTransaction = async (transactionId: number) => {
+    try {
+      await db.transacoes.delete(transactionId);
+      
+      setTransactions(prev => prev.filter(t => t.id !== transactionId));
+
+      toast({
+        title: "Transação excluída!",
+        description: "A transação foi removida com sucesso.",
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Erro ao excluir transação:', error);
+      toast({
+        title: "Erro ao excluir transação",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   // Importar dados
   const handleImportData = async (file: File) => {
     try {
@@ -279,6 +348,8 @@ export function useIndexedDB() {
     categories,
     loading,
     addTransaction,
+    editTransaction,
+    deleteTransaction,
     addCategory,
     deleteCategory,
     getBalance,

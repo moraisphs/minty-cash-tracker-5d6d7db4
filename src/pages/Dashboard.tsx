@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Download, Upload } from "lucide-react";
+import { Plus, User } from "lucide-react";
 import { DashboardCard } from "@/components/financial/DashboardCard";
 import { FinancialCharts } from "@/components/financial/FinancialCharts";
 import { TransactionList } from "@/components/financial/TransactionList";
 import { FilterTabs } from "@/components/financial/FilterTabs";
 import { AddTransactionDialog } from "@/components/financial/AddTransactionDialog";
+import { PDFReportGenerator } from "@/components/financial/PDFReportGenerator";
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -27,12 +28,12 @@ export default function Dashboard() {
     categories, 
     loading, 
     addTransaction, 
+    editTransaction,
+    deleteTransaction,
     addCategory,
     deleteCategory,
     getBalance, 
-    getTransactionsByPeriod,
-    exportData,
-    importData
+    getTransactionsByPeriod
   } = useIndexedDB();
 
   if (loading) {
@@ -50,12 +51,29 @@ export default function Dashboard() {
   const periodTransactions = getTransactionsByPeriod(period);
   
   const periodIncome = periodTransactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+    .filter((t) => t.tipo === "entrada")
+    .reduce((sum, t) => sum + t.valor, 0);
   
   const periodExpenses = periodTransactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+    .filter((t) => t.tipo === "saida")
+    .reduce((sum, t) => sum + t.valor, 0);
+
+  // Wrapper functions para compatibilidade de tipos
+  const handleEditTransaction = async (transactionId: number, data: {
+    description: string;
+    amount: number;
+    type: 'income' | 'expense';
+    transaction_date: string;
+    category_id: string;
+    tags?: string[];
+    notes?: string;
+  }) => {
+    return await editTransaction(transactionId, data);
+  };
+
+  const handleDeleteTransaction = async (transactionId: number) => {
+    return await deleteTransaction(transactionId);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/5 p-4 md:p-6">
@@ -63,45 +81,19 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Minty Cash Tracker
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              My Cash
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               Bem-vindo ao seu controle financeiro pessoal!
             </p>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              onClick={exportData}
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Exportar
-            </Button>
-            
-            <input
-              type="file"
-              accept=".json"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  importData(file);
-                  e.target.value = ''; // Reset input
-                }
-              }}
-              className="hidden"
-              id="import-file"
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <PDFReportGenerator 
+              transactions={transactions}
+              getTransactionsByPeriod={getTransactionsByPeriod}
             />
-            <Button 
-              variant="outline" 
-              onClick={() => document.getElementById('import-file')?.click()}
-              className="flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Importar
-            </Button>
 
             <AddTransactionDialog 
               categories={categories}
@@ -109,9 +101,10 @@ export default function Dashboard() {
               onAddCategory={addCategory}
               onDeleteCategory={deleteCategory}
             >
-              <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg">
+              <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
-                Adicionar Transação
+                <span className="hidden xs:inline">Adicionar Transação</span>
+                <span className="xs:hidden">Adicionar</span>
               </Button>
             </AddTransactionDialog>
           </div>
@@ -121,16 +114,16 @@ export default function Dashboard() {
         {/* Welcome Section & Period Filter */}
         <div className="text-center space-y-4">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold">Visão Geral Financeira</h2>
-            <p className="text-muted-foreground">Acompanhe seus gastos e receitas</p>
+            <h2 className="text-xl sm:text-2xl font-bold">Visão Geral Financeira</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">Acompanhe seus gastos e receitas</p>
           </div>
-          <div className="max-w-md mx-auto">
+          <div className="max-w-md mx-auto px-4">
             <FilterTabs value={period} onValueChange={setPeriod} />
           </div>
         </div>
 
         {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <DashboardCard
             title="Saldo Atual"
             value={`R$ ${balance.toFixed(2)}`}
@@ -175,7 +168,13 @@ export default function Dashboard() {
         <FinancialCharts transactions={periodTransactions} />
 
         {/* Recent Transactions */}
-        <TransactionList transactions={transactions} loading={loading} />
+        <TransactionList 
+          transactions={transactions} 
+          loading={loading}
+          categories={categories}
+          onEditTransaction={handleEditTransaction}
+          onDeleteTransaction={handleDeleteTransaction}
+        />
       </div>
     </div>
   );

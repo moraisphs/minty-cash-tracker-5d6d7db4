@@ -1,8 +1,43 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="512" height="512" rx="64" fill="#248F59"/>
-<svg x="128" y="128" width="256" height="256" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-<path d="M19 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-14 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
-<path d="M10 6v12c0 1.1-.9 2-2 2h-2c-1.1 0-2-.9-2-2V6h16z"/>
-<path d="M10 6h4v12h-4V6z"/>
-</svg>
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FCD34D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bgGradient)" stroke="#047857" stroke-width="8"/>
+  
+  <!-- Main coin -->
+  <circle cx="256" cy="200" r="80" fill="url(#coinGradient)" stroke="#D97706" stroke-width="4"/>
+  
+  <!-- Dollar sign on coin -->
+  <text x="256" y="220" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="#92400E">$</text>
+  
+  <!-- Smaller coins -->
+  <circle cx="180" cy="320" r="45" fill="url(#coinGradient)" stroke="#D97706" stroke-width="3"/>
+  <circle cx="332" cy="320" r="45" fill="url(#coinGradient)" stroke="#D97706" stroke-width="3"/>
+  
+  <!-- Dollar signs on smaller coins -->
+  <text x="180" y="335" font-family="Arial, sans-serif" font-size="35" font-weight="bold" text-anchor="middle" fill="#92400E">$</text>
+  <text x="332" y="335" font-family="Arial, sans-serif" font-size="35" font-weight="bold" text-anchor="middle" fill="#92400E">$</text>
+  
+  <!-- Chart/Graph elements -->
+  <rect x="120" y="380" width="8" height="40" fill="#FEF3C7" rx="4"/>
+  <rect x="140" y="370" width="8" height="50" fill="#FEF3C7" rx="4"/>
+  <rect x="160" y="360" width="8" height="60" fill="#FEF3C7" rx="4"/>
+  <rect x="180" y="350" width="8" height="70" fill="#FEF3C7" rx="4"/>
+  
+  <!-- Trend line -->
+  <path d="M120 420 L140 410 L160 400 L180 390 L200 380 L220 370 L240 360 L260 350 L280 340 L300 330 L320 320 L340 310 L360 300 L380 290 L400 280" 
+        stroke="#FEF3C7" stroke-width="4" fill="none" stroke-linecap="round"/>
+  
+  <!-- App name -->
+  <text x="256" y="480" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="white">My Cash</text>
 </svg>
