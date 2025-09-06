@@ -22,11 +22,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Check, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Category } from "@/hooks/useIndexedDB";
+import { CategoryWithId } from "@/hooks/useSupabase";
 import { CategoryManager } from "./CategoryManager";
 
 interface AddTransactionDialogProps {
-  categories: Category[];
+  categories: CategoryWithId[];
   onAddTransaction: (data: {
     description: string;
     amount: number;
@@ -42,11 +42,16 @@ interface AddTransactionDialogProps {
     icon?: string;
     color?: string;
   }) => Promise<any>;
+  onEditCategory: (categoryId: string, data: {
+    name: string;
+    type: 'income' | 'expense';
+    color?: string;
+  }) => Promise<any>;
   onDeleteCategory: (categoryId: string) => Promise<any>;
   children: ReactNode;
 }
 
-export function AddTransactionDialog({ categories, onAddTransaction, onAddCategory, onDeleteCategory, children }: AddTransactionDialogProps) {
+export function AddTransactionDialog({ categories, onAddTransaction, onAddCategory, onEditCategory, onDeleteCategory, children }: AddTransactionDialogProps) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"income" | "expense">("expense");
   const [amount, setAmount] = useState("");
@@ -76,7 +81,7 @@ export function AddTransactionDialog({ categories, onAddTransaction, onAddCatego
       setDescription("");
       setCategory("");
       setDate(new Date().toISOString().split('T')[0]);
-      setOpen(false);
+      // Modal não fecha automaticamente - apenas quando usuário clicar no X
 
       toast({
         title: "Transação adicionada!",
@@ -160,6 +165,7 @@ export function AddTransactionDialog({ categories, onAddTransaction, onAddCatego
               <CategoryManager 
                 categories={categories}
                 onAddCategory={onAddCategory}
+                onEditCategory={onEditCategory}
                 onDeleteCategory={onDeleteCategory}
               />
             </div>

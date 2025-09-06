@@ -165,6 +165,54 @@ export function useIndexedDB() {
     }
   };
 
+  // Editar categoria
+  const editCategory = async (categoryId: string, categoryData: {
+    name: string;
+    type: 'income' | 'expense';
+    color?: string;
+  }) => {
+    try {
+      // Verificar se já existe uma categoria com o mesmo nome e tipo (excluindo a atual)
+      const existingCategory = categories.find(
+        cat => cat.id !== categoryId &&
+               cat.name.toLowerCase() === categoryData.name.toLowerCase() && 
+               cat.type === categoryData.type
+      );
+
+      if (existingCategory) {
+        throw new Error('Já existe uma categoria com este nome e tipo');
+      }
+
+      const updatedCategory: Categoria = {
+        id: categoryId,
+        ...categoryData,
+        is_default: false
+      };
+
+      // Atualizar no IndexedDB
+      await db.categorias.update(categoryId, updatedCategory);
+      
+      // Atualizar estado local
+      setCategories(prev => prev.map(cat => cat.id === categoryId ? updatedCategory : cat));
+
+      toast({
+        title: "Categoria editada",
+        description: `A categoria "${categoryData.name}" foi atualizada com sucesso.`,
+      });
+
+      return updatedCategory;
+    } catch (error: unknown) {
+      console.error('Erro ao editar categoria:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast({
+        title: "Erro ao editar categoria",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   // Excluir categoria
   const deleteCategory = async (categoryId: string) => {
     console.log('=== FUNÇÃO deleteCategory CHAMADA ===');
@@ -466,6 +514,7 @@ export function useIndexedDB() {
     editTransaction,
     deleteTransaction,
     addCategory,
+    editCategory,
     deleteCategory,
     getBalance,
     getTransactionsByPeriod,

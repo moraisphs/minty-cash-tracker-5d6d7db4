@@ -1,0 +1,5 @@
+# Variáveis de Ambiente para o Vercel
+# Copie estas variáveis para o painel do Vercel em Settings > Environment Variables
+
+VITE_SUPABASE_URL=https://lwoisenyvawjlewecdoa.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3b2lzZW55dmF3amxld2VjZG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5NzQ4MjQsImV4cCI6MjA1MTU1MDgyNH0.REPLACE_WITH_ACTUAL_KEY

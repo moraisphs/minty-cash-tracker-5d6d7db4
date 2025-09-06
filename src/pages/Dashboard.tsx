@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { useIndexedDB } from "@/hooks/useIndexedDB";
+import { useSupabase } from "@/hooks/useSupabase";
 
 export default function Dashboard() {
   const [period, setPeriod] = useState("month");
@@ -31,10 +31,11 @@ export default function Dashboard() {
     editTransaction,
     deleteTransaction,
     addCategory,
+    editCategory,
     deleteCategory,
     getBalance, 
     getTransactionsByPeriod
-  } = useIndexedDB();
+  } = useSupabase();
 
 
   if (loading) {
@@ -52,15 +53,15 @@ export default function Dashboard() {
   const periodTransactions = getTransactionsByPeriod(period);
   
   const periodIncome = periodTransactions
-    .filter((t) => t.tipo === "entrada")
-    .reduce((sum, t) => sum + t.valor, 0);
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
   
   const periodExpenses = periodTransactions
-    .filter((t) => t.tipo === "saida")
-    .reduce((sum, t) => sum + t.valor, 0);
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
 
   // Wrapper functions para compatibilidade de tipos
-  const handleEditTransaction = async (transactionId: number, data: {
+  const handleEditTransaction = async (transactionId: string, data: {
     description: string;
     amount: number;
     type: 'income' | 'expense';
@@ -72,7 +73,7 @@ export default function Dashboard() {
     return await editTransaction(transactionId, data);
   };
 
-  const handleDeleteTransaction = async (transactionId: number) => {
+  const handleDeleteTransaction = async (transactionId: string) => {
     return await deleteTransaction(transactionId);
   };
 
@@ -101,6 +102,7 @@ export default function Dashboard() {
               categories={categories}
               onAddTransaction={addTransaction}
               onAddCategory={addCategory}
+              onEditCategory={editCategory}
               onDeleteCategory={deleteCategory}
             >
               <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg w-full xs:w-auto text-sm">

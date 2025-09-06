@@ -1,4 +1,85 @@
-# Welcome to your Lovable project
+# My Cash - Controle Financeiro Pessoal
+
+## 🚀 Funcionalidades
+
+- ✅ **Controle de Receitas e Despesas**: Adicione, edite e exclua transações
+- ✅ **Gerenciamento de Categorias**: Crie, edite e exclua categorias personalizadas
+- ✅ **Dashboard Interativo**: Visualize saldo, receitas e despesas
+- ✅ **Gráficos Financeiros**: Análise visual dos seus gastos
+- ✅ **Filtros por Período**: Visualize dados por semana, mês, trimestre ou ano
+- ✅ **Relatórios PDF**: Exporte seus dados financeiros
+- ✅ **Persistência na Nuvem**: Dados salvos no Supabase e sincronizados
+- ✅ **PWA**: Instale como aplicativo no seu dispositivo
+
+## 🛠️ Tecnologias
+
+- **Frontend**: React + TypeScript + Vite
+- **UI**: Tailwind CSS + shadcn/ui
+- **Backend**: Supabase (PostgreSQL)
+- **Deploy**: Vercel
+- **PWA**: Service Worker + Manifest
+
+## 📱 Como Usar
+
+1. **Acesse o App**: Abra o aplicativo no navegador
+2. **Adicione Transações**: Clique em "Adicionar Transação"
+3. **Gerencie Categorias**: Use o botão "Gerenciar Categorias"
+4. **Visualize Dados**: Explore o dashboard e gráficos
+5. **Exporte Relatórios**: Gere PDFs dos seus dados
+
+## 🔧 Configuração para Deploy
+
+### Variáveis de Ambiente Necessárias
+
+Para que os dados sejam persistidos na nuvem, configure as seguintes variáveis no Vercel:
+
+```
+VITE_SUPABASE_URL=https://lwoisenyvawjlewecdoa.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_anonima_aqui
+```
+
+### Como Obter as Chaves do Supabase
+
+1. Acesse [supabase.com](https://supabase.com)
+2. Faça login na sua conta
+3. Selecione o projeto "lwoisenyvawjlewecdoa"
+4. Vá para "Settings" > "API"
+5. Copie:
+   - **Project URL** → use como `VITE_SUPABASE_URL`
+   - **anon public** key → use como `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+## 🚀 Deploy no Vercel
+
+1. Configure as variáveis de ambiente no painel do Vercel
+2. Faça push das alterações:
+```bash
+git add .
+git commit -m "feat: implement Supabase persistence"
+git push
+```
+3. O Vercel fará o deploy automaticamente
+4. Os dados serão persistidos na nuvem e aparecerão em qualquer dispositivo
+
+## 📊 Estrutura do Banco de Dados
+
+O projeto usa as seguintes tabelas no Supabase:
+
+- **transactions**: Armazena todas as transações financeiras
+- **categories**: Armazena as categorias de receitas e despesas
+- **profiles**: Perfil do usuário (futuro)
+- **budgets**: Orçamentos (futuro)
+- **financial_goals**: Metas financeiras (futuro)
+
+## 🎯 Próximas Funcionalidades
+
+- [ ] Autenticação de usuários
+- [ ] Orçamentos e metas financeiras
+- [ ] Categorização automática
+- [ ] Notificações de gastos
+- [ ] Relatórios avançados
+- [ ] Integração com bancos
+
+---
 
 ## Project info
 

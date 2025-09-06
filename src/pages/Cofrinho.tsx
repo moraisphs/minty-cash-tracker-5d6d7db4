@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { PiggyBank, Target, TrendingUp, Calendar, Plus, Minus } from "lucide-react";
+import { PiggyBank, Target, TrendingUp, Calendar, Plus, Minus, Edit } from "lucide-react";
 import { useIndexedDB } from "@/hooks/useIndexedDB";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,6 +33,15 @@ export default function Cofrinho() {
     icone: "PiggyBank"
   });
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [editandoMeta, setEditandoMeta] = useState<string | null>(null);
+  const [metaEditando, setMetaEditando] = useState({
+    nome: "",
+    valorObjetivo: "",
+    dataLimite: "",
+    descricao: "",
+    cor: "#3B82F6",
+    icone: "PiggyBank"
+  });
 
   const cores = [
     "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", 
@@ -138,6 +147,75 @@ export default function Cofrinho() {
     toast({
       title: "Meta excluída!",
       description: "A meta foi removida com sucesso.",
+    });
+  };
+
+  // Iniciar edição de meta
+  const iniciarEdicao = (meta: MetaEconomia) => {
+    setEditandoMeta(meta.id);
+    setMetaEditando({
+      nome: meta.nome,
+      valorObjetivo: meta.valorObjetivo.toString(),
+      dataLimite: meta.dataLimite,
+      descricao: meta.descricao || "",
+      cor: meta.cor,
+      icone: meta.icone
+    });
+  };
+
+  // Salvar edição de meta
+  const salvarEdicao = () => {
+    if (!editandoMeta || !metaEditando.nome || !metaEditando.valorObjetivo || !metaEditando.dataLimite) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const novasMetas = metas.map(meta => 
+      meta.id === editandoMeta 
+        ? {
+            ...meta,
+            nome: metaEditando.nome,
+            valorObjetivo: parseFloat(metaEditando.valorObjetivo),
+            dataLimite: metaEditando.dataLimite,
+            descricao: metaEditando.descricao,
+            cor: metaEditando.cor,
+            icone: metaEditando.icone
+          }
+        : meta
+    );
+
+    setMetas(novasMetas);
+    localStorage.setItem('metas-economia', JSON.stringify(novasMetas));
+    setEditandoMeta(null);
+    setMetaEditando({
+      nome: "",
+      valorObjetivo: "",
+      dataLimite: "",
+      descricao: "",
+      cor: "#3B82F6",
+      icone: "PiggyBank"
+    });
+
+    toast({
+      title: "Meta editada!",
+      description: "A meta foi atualizada com sucesso.",
+    });
+  };
+
+  // Cancelar edição de meta
+  const cancelarEdicao = () => {
+    setEditandoMeta(null);
+    setMetaEditando({
+      nome: "",
+      valorObjetivo: "",
+      dataLimite: "",
+      descricao: "",
+      cor: "#3B82F6",
+      icone: "PiggyBank"
     });
   };
 
@@ -321,10 +399,7 @@ export default function Cofrinho() {
                 <p className="text-muted-foreground text-center mb-4">
                   Crie sua primeira meta de economia para começar a guardar dinheiro
                 </p>
-                <Button onClick={() => setMostrarFormulario(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Criar Primeira Meta
-                </Button>
+                
               </CardContent>
             </Card>
           ) : (
@@ -335,87 +410,181 @@ export default function Cofrinho() {
               
               return (
                 <Card key={meta.id} className="relative">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="p-2 rounded-full"
-                          style={{ backgroundColor: meta.cor + '20' }}
-                        >
-                          <PiggyBank className="h-5 w-5" style={{ color: meta.cor }} />
+                  {editandoMeta === meta.id ? (
+                    // Formulário de edição
+                    <CardHeader>
+                      <CardTitle>Editar Meta</CardTitle>
+                    </CardHeader>
+                  ) : (
+                    // Exibição normal da meta
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="p-2 rounded-full"
+                            style={{ backgroundColor: meta.cor + '20' }}
+                          >
+                            <PiggyBank className="h-5 w-5" style={{ color: meta.cor }} />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">{meta.nome}</CardTitle>
+                            {meta.descricao && (
+                              <p className="text-sm text-muted-foreground">{meta.descricao}</p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <CardTitle className="text-lg">{meta.nome}</CardTitle>
-                          {meta.descricao && (
-                            <p className="text-sm text-muted-foreground">{meta.descricao}</p>
+                        <div className="flex items-center gap-2">
+                          {atingida && (
+                            <Badge className="bg-green-100 text-green-800">
+                              Concluída!
+                            </Badge>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => iniciarEdicao(meta)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => excluirMeta(meta.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            ×
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {atingida && (
-                          <Badge className="bg-green-100 text-green-800">
-                            Concluída!
-                          </Badge>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => excluirMeta(meta.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
+                    </CardHeader>
+                  )}
                   
                   <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Progresso</span>
-                        <span>{progresso.toFixed(1)}%</span>
-                      </div>
-                      <Progress value={progresso} className="h-2" />
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>R$ {meta.valorAtual.toFixed(2)}</span>
-                        <span>R$ {meta.valorObjetivo.toFixed(2)}</span>
-                      </div>
-                    </div>
+                      {editandoMeta === meta.id ? (
+                      // Formulário de edição
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-nome">Nome da Meta</Label>
+                            <Input
+                              id="edit-nome"
+                              placeholder="Ex: Viagem para Europa"
+                              value={metaEditando.nome}
+                              onChange={(e) => setMetaEditando({...metaEditando, nome: e.target.value})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-valor">Valor Objetivo (R$)</Label>
+                            <Input
+                              id="edit-valor"
+                              type="number"
+                              step="0.01"
+                              placeholder="5000.00"
+                              value={metaEditando.valorObjetivo}
+                              onChange={(e) => setMetaEditando({...metaEditando, valorObjetivo: e.target.value})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-data">Data Limite</Label>
+                            <Input
+                              id="edit-data"
+                              type="date"
+                              value={metaEditando.dataLimite}
+                              onChange={(e) => setMetaEditando({...metaEditando, dataLimite: e.target.value})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-cor">Cor</Label>
+                            <div className="flex gap-2">
+                              {cores.map(cor => (
+                                <button
+                                  key={cor}
+                                  className={`w-8 h-8 rounded-full border-2 ${
+                                    metaEditando.cor === cor ? 'border-foreground' : 'border-transparent'
+                                  }`}
+                                  style={{ backgroundColor: cor }}
+                                  onClick={() => setMetaEditando({...metaEditando, cor})}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-descricao">Descrição (opcional)</Label>
+                          <Input
+                            id="edit-descricao"
+                            placeholder="Descreva sua meta..."
+                            value={metaEditando.descricao}
+                            onChange={(e) => setMetaEditando({...metaEditando, descricao: e.target.value})}
+                          />
+                        </div>
 
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {dias > 0 ? `${dias} dias restantes` : 'Prazo vencido'}
-                        </span>
+                        <div className="flex gap-2">
+                          <Button onClick={salvarEdicao} className="flex-1">
+                            Salvar Alterações
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={cancelarEdicao}
+                            className="flex-1"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const valor = prompt('Valor a adicionar (R$):');
-                            if (valor) adicionarValor(meta.id, parseFloat(valor));
-                          }}
-                          className="flex-1"
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Adicionar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const valor = prompt('Valor a remover (R$):');
-                            if (valor) removerValor(meta.id, parseFloat(valor));
-                          }}
-                          className="flex-1"
-                        >
-                          <Minus className="h-4 w-4 mr-1" />
-                          Remover
-                        </Button>
-                      </div>
-                    </div>
+                    ) : (
+                      // Exibição normal da meta
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Progresso</span>
+                            <span>{progresso.toFixed(1)}%</span>
+                          </div>
+                          <Progress value={progresso} className="h-2" />
+                          <div className="flex justify-between text-sm text-muted-foreground">
+                            <span>R$ {meta.valorAtual.toFixed(2)}</span>
+                            <span>R$ {meta.valorObjetivo.toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            <span>
+                              {dias > 0 ? `${dias} dias restantes` : 'Prazo vencido'}
+                            </span>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const valor = prompt('Valor a adicionar (R$):');
+                                if (valor) adicionarValor(meta.id, parseFloat(valor));
+                              }}
+                              className="flex-1"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Adicionar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const valor = prompt('Valor a remover (R$):');
+                                if (valor) removerValor(meta.id, parseFloat(valor));
+                              }}
+                              className="flex-1"
+                            >
+                              <Minus className="h-4 w-4 mr-1" />
+                              Remover
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               );

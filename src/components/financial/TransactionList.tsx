@@ -6,8 +6,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { TrendingUp, TrendingDown, ShoppingBag, Car, Home, Gamepad2, Heart, BookOpen, Briefcase, PiggyBank, Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Transacao } from "@/lib/db";
-import { Category } from "@/hooks/useIndexedDB";
+import { TransactionWithId } from "@/hooks/useSupabase";
+import { CategoryWithId } from "@/hooks/useSupabase";
 import { EditTransactionDialog } from "./EditTransactionDialog";
 
 const categoryIcons = {
@@ -24,10 +24,10 @@ const categoryIcons = {
 };
 
 interface TransactionListProps {
-  transactions: Transacao[];
+  transactions: TransactionWithId[];
   loading: boolean;
-  categories: Category[];
-  onEditTransaction: (transactionId: number, data: {
+  categories: CategoryWithId[];
+  onEditTransaction: (transactionId: string, data: {
     description: string;
     amount: number;
     type: 'income' | 'expense';
@@ -35,8 +35,8 @@ interface TransactionListProps {
     category_id: string;
     tags?: string[];
     notes?: string;
-  }) => Promise<Transacao>;
-  onDeleteTransaction: (transactionId: number) => Promise<boolean>;
+  }) => Promise<TransactionWithId>;
+  onDeleteTransaction: (transactionId: string) => Promise<boolean>;
 }
 
 export function TransactionList({ 
@@ -46,8 +46,8 @@ export function TransactionList({
   onEditTransaction, 
   onDeleteTransaction 
 }: TransactionListProps) {
-  const [editingTransaction, setEditingTransaction] = useState<Transacao | null>(null);
-  const [deletingTransaction, setDeletingTransaction] = useState<Transacao | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<TransactionWithId | null>(null);
+  const [deletingTransaction, setDeletingTransaction] = useState<TransactionWithId | null>(null);
 
   if (loading) {
     return (
@@ -85,8 +85,10 @@ export function TransactionList({
             </div>
           ) : (
             recentTransactions.map((transaction) => {
-              const Icon = categoryIcons[transaction.categoria as keyof typeof categoryIcons] || TrendingUp;
-              const isIncome = transaction.tipo === "entrada";
+              const category = categories.find(cat => cat.id === transaction.category_id);
+              const categoryName = category?.name || 'Outros';
+              const Icon = categoryIcons[categoryName as keyof typeof categoryIcons] || TrendingUp;
+              const isIncome = transaction.type === "income";
               
               return (
                 <div
@@ -105,13 +107,13 @@ export function TransactionList({
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">{transaction.descricao}</p>
+                      <p className="font-medium">{transaction.description}</p>
                       <div className="flex items-center space-x-2">
                         <Badge variant="outline" className="text-xs">
-                          {transaction.categoria || "Outros"}
+                          {categoryName}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(transaction.data).toLocaleDateString('pt-BR')}
+                          {new Date(transaction.transaction_date).toLocaleDateString('pt-BR')}
                         </span>
                       </div>
                     </div>
@@ -122,7 +124,7 @@ export function TransactionList({
                       "font-semibold text-lg",
                       isIncome ? "text-income" : "text-expense"
                     )}>
-                      {isIncome ? "+" : "-"}R$ {transaction.valor.toFixed(2)}
+                      {isIncome ? "+" : "-"}R$ {transaction.amount.toFixed(2)}
                     </div>
                     
                     <DropdownMenu>
