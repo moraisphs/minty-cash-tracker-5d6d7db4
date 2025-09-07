@@ -13,10 +13,5 @@
         { "key": "Expires", "value": "0" }
       ]
     }
-  ],
-  "functions": {
-    "app/api/**/*.js": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }
