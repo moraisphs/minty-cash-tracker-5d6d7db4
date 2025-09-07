@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
+    emptyOutDir: true, // limpa diretório antes do build
     assetsDir: 'assets',
     sourcemap: false, // desabilita sourcemap para produção
     rollupOptions: {
