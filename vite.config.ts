@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    sourcemap: false, // desabilita sourcemap para produção
     rollupOptions: {
       output: {
         assetFileNames: 'assets/[name]-[hash][extname]',
