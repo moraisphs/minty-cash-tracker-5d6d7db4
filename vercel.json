@@ -3,7 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  // Force cache refresh for assets
   "builds": [
     {
       "src": "package.json",
