@@ -52,3 +52,5 @@ ALTER TABLE transactions DISABLE ROW LEVEL SECURITY;
 **O app está funcionando perfeitamente!** Os erros no console não afetam a funcionalidade. Os dados estão sendo salvos localmente e persistem entre sessões.
 
 **Continue usando o app normalmente!** 🎉
+
+

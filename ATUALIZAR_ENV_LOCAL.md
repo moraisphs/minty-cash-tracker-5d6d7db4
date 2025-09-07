@@ -40,3 +40,5 @@ Após atualizar com a chave correta:
 - ✅ **Sincronização na nuvem**
 
 **Atualize o arquivo .env.local agora!** 🎉
+
+

@@ -59,3 +59,5 @@ Após a configuração:
 - **⏳ Aguardando** execução do SQL no Supabase
 
 **Após a configuração, os dados serão salvos no Supabase!** 🎉
+
+

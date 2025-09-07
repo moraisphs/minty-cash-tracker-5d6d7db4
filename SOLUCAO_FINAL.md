@@ -79,3 +79,5 @@ Se quiser persistência na nuvem:
 3. Faça deploy no Vercel
 
 **O app está funcionando perfeitamente!** 🎉
+
+

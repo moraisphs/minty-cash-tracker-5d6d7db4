@@ -65,3 +65,5 @@ No painel do Supabase, vá para **Table Editor** e verifique se:
 - ✅ **Dados são criados** quando você adiciona transações
 
 **Execute o SQL completo agora!** 🎉
+
+

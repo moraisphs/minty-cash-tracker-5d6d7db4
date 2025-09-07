@@ -47,3 +47,5 @@ Se o app estiver funcionando:
 4. **Para produção**: Configure Supabase corretamente
 
 **O app deve estar funcionando mesmo com os erros!** 🎉
+
+
