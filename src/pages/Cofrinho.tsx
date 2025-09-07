@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { PiggyBank, Target, TrendingUp, Calendar, Plus, Minus, Edit } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { PiggyBank, Target, TrendingUp, Calendar, Plus, Minus, Edit, RotateCcw } from "lucide-react";
 import { useIndexedDB } from "@/hooks/useIndexedDB";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,7 +22,7 @@ interface MetaEconomia {
 }
 
 export default function Cofrinho() {
-  const { transactions, getBalance } = useIndexedDB();
+  const { transactions, getBalance, resetDatabase } = useIndexedDB();
   const { toast } = useToast();
   const [metas, setMetas] = useState<MetaEconomia[]>([]);
   const [novaMeta, setNovaMeta] = useState({
@@ -238,6 +239,24 @@ export default function Cofrinho() {
     return diffDays;
   };
 
+  // Zerar economia total (resetar todas as transações)
+  const zerarEconomiaTotal = async () => {
+    try {
+      await resetDatabase();
+      setMetas([]); // Também limpar as metas
+      toast({
+        title: "Economia zerada!",
+        description: "Todas as transações foram removidas e a economia foi resetada.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao zerar economia",
+        description: "Não foi possível resetar a economia. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/5 p-3 xs:p-4 md:p-6">
       <div className="mx-auto max-w-7xl space-y-4 xs:space-y-6">
@@ -267,7 +286,47 @@ export default function Cofrinho() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Economia Total</CardTitle>
-              <PiggyBank className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <PiggyBank className="h-4 w-4 text-muted-foreground" />
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Zerar Economia Total"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Zerar Economia Total</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja zerar toda a economia? Esta ação irá:
+                        <br />
+                        • Remover todas as transações (receitas e despesas)
+                        <br />
+                        • Limpar todas as metas de economia
+                        <br />
+                        • Resetar o saldo para R$ 0,00
+                        <br />
+                        <br />
+                        <strong>Esta ação não pode ser desfeita!</strong>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={zerarEconomiaTotal}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Sim, zerar economia
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
