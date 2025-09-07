@@ -5,6 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: './', // garante que os assets sejam buscados do diretório correto no Vercel
   server: {
     host: "::",
     port: 8080,
