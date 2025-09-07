@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => ({
   define: {
     __VITE_BASE_URL__: JSON.stringify('./'),
   },
+  publicDir: 'public',
   plugins: [
     react(),
     mode === 'development' &&
