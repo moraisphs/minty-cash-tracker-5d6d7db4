@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  define: {
+    __VITE_BASE_URL__: JSON.stringify('./'),
+  },
   plugins: [
     react(),
     mode === 'development' &&
