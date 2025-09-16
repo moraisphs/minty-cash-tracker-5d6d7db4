@@ -1,9 +1,12 @@
-const CACHE_NAME = 'mycash-v1';
+const CACHE_NAME = 'mycash-v2';
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
+  '/icon.svg',
+  '/favicon.ico'
 ];
 
 // Install event
