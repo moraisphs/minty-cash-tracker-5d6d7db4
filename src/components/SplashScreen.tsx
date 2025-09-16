@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wallet, TrendingUp, PiggyBank, Shield } from "lucide-react";
+import { Wallet, TrendingUp } from "lucide-react";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -17,7 +17,10 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(timer);
-          onComplete();
+          // Usar setTimeout para evitar warning de setState durante render
+          setTimeout(() => {
+            onComplete();
+          }, 0);
           return 100;
         }
         return prev + increment;
@@ -45,7 +48,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
           <div className="flex flex-col items-center space-y-3 p-4 rounded-lg bg-card/50 backdrop-blur">
             <div className="p-3 rounded-lg bg-income-light">
               <Wallet className="h-6 w-6 text-income" />
@@ -63,26 +66,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             <h3 className="font-semibold">Relatórios Inteligentes</h3>
             <p className="text-sm text-muted-foreground text-center">
               Insights automáticos e visualizações claras
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center space-y-3 p-4 rounded-lg bg-card/50 backdrop-blur">
-            <div className="p-3 rounded-lg bg-primary/10">
-              <PiggyBank className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold">Metas & Conquistas</h3>
-            <p className="text-sm text-muted-foreground text-center">
-              Acompanhe seus objetivos financeiros
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center space-y-3 p-4 rounded-lg bg-card/50 backdrop-blur">
-            <div className="p-3 rounded-lg bg-accent/10">
-              <Shield className="h-6 w-6 text-accent" />
-            </div>
-            <h3 className="font-semibold">Seguro & Privado</h3>
-            <p className="text-sm text-muted-foreground text-center">
-              Seus dados protegidos e organizados
             </p>
           </div>
         </div>

@@ -18,7 +18,17 @@ export function PDFReportGenerator({ transactions, getTransactionsByPeriod }: PD
     setLoading(period);
     
     try {
+      // Validar se os dados estão carregados
+      if (!transactions || !Array.isArray(transactions)) {
+        throw new Error('Dados de transações não carregados');
+      }
+
       const periodTransactions = getTransactionsByPeriod(period);
+      
+      if (!periodTransactions || !Array.isArray(periodTransactions)) {
+        throw new Error('Erro ao carregar transações do período');
+      }
+
       const doc = new jsPDF();
       
       // Configurações do documento
@@ -60,11 +70,11 @@ export function PDFReportGenerator({ transactions, getTransactionsByPeriod }: PD
         doc.text("Transações", margin, 135);
         
         const tableData = periodTransactions.map(transaction => [
-          new Date(transaction.data).toLocaleDateString('pt-BR'),
-          transaction.descricao || '',
-          transaction.categoria || 'Outros',
-          transaction.tipo === 'entrada' ? 'Receita' : 'Despesa',
-          `R$ ${transaction.valor.toFixed(2)}`
+          transaction?.data ? new Date(transaction.data).toLocaleDateString('pt-BR') : '',
+          transaction?.descricao || '',
+          transaction?.categoria || 'Outros',
+          transaction?.tipo === 'entrada' ? 'Receita' : 'Despesa',
+          `R$ ${(transaction?.valor ?? 0).toFixed(2)}`
         ]);
         
         autoTable(doc, {
@@ -160,13 +170,21 @@ export function PDFReportGenerator({ transactions, getTransactionsByPeriod }: PD
   };
 
   const calculateSummary = (transactions: Transacao[]) => {
+    if (!transactions || !Array.isArray(transactions)) {
+      return {
+        totalIncome: 0,
+        totalExpenses: 0,
+        balance: 0,
+      };
+    }
+
     const totalIncome = transactions
-      .filter(t => t.tipo === 'entrada')
-      .reduce((sum, t) => sum + t.valor, 0);
+      .filter(t => t?.tipo === 'entrada')
+      .reduce((sum, t) => sum + (t?.valor ?? 0), 0);
     
     const totalExpenses = transactions
-      .filter(t => t.tipo === 'saida')
-      .reduce((sum, t) => sum + t.valor, 0);
+      .filter(t => t?.tipo === 'saida')
+      .reduce((sum, t) => sum + (t?.valor ?? 0), 0);
     
     return {
       totalIncome,
@@ -176,15 +194,25 @@ export function PDFReportGenerator({ transactions, getTransactionsByPeriod }: PD
   };
 
   const getCategoryData = (transactions: Transacao[]) => {
+    if (!transactions || !Array.isArray(transactions)) {
+      return [];
+    }
+
     const categoryMap = new Map<string, number>();
     
     transactions.forEach(transaction => {
-      const category = transaction.categoria || 'Outros';
-      const current = categoryMap.get(category) || 0;
-      categoryMap.set(category, current + transaction.valor);
+      if (transaction?.valor && transaction?.categoria) {
+        const category = transaction.categoria || 'Outros';
+        const current = categoryMap.get(category) || 0;
+        categoryMap.set(category, current + (transaction.valor ?? 0));
+      }
     });
     
     const total = Array.from(categoryMap.values()).reduce((sum, amount) => sum + amount, 0);
+    
+    if (total === 0) {
+      return [];
+    }
     
     return Array.from(categoryMap.entries())
       .map(([name, amount]) => ({

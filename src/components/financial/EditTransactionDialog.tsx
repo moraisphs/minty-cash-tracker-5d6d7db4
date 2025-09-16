@@ -10,21 +10,23 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { Transacao } from "@/lib/db";
-import { Category } from "@/hooks/useIndexedDB";
+import { TransactionWithId } from "@/hooks/useSupabase";
+import { CategoryWithId } from "@/hooks/useSupabase";
 
 interface EditTransactionDialogProps {
-  transaction: Transacao;
-  categories: Category[];
+  transaction: TransactionWithId;
+  categories: CategoryWithId[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onEditTransaction: (transactionId: number, data: {
+  onEditTransaction: (transactionId: string, data: {
     description: string;
     amount: number;
     type: 'income' | 'expense';
     transaction_date: string;
     category_id: string;
-  }) => Promise<void>;
+    tags?: string[];
+    notes?: string;
+  }) => Promise<TransactionWithId>;
 }
 
 export function EditTransactionDialog({
@@ -35,23 +37,20 @@ export function EditTransactionDialog({
   onEditTransaction
 }: EditTransactionDialogProps) {
   const [formData, setFormData] = useState({
-    description: transaction.descricao || '',
-    amount: transaction.valor.toString(),
-    type: transaction.tipo === 'entrada' ? 'income' : 'expense' as 'income' | 'expense',
-    transaction_date: new Date(transaction.data),
-    category_id: ''
+    description: transaction.description || '',
+    amount: transaction.amount.toString(),
+    type: transaction.type as 'income' | 'expense',
+    transaction_date: new Date(transaction.transaction_date),
+    category_id: transaction.category_id || ''
   });
   const [loading, setLoading] = useState(false);
 
   // Encontrar a categoria atual
   useEffect(() => {
-    if (transaction.categoria) {
-      const currentCategory = categories.find(cat => cat.name === transaction.categoria);
-      if (currentCategory) {
-        setFormData(prev => ({ ...prev, category_id: currentCategory.id }));
-      }
+    if (transaction.category_id) {
+      setFormData(prev => ({ ...prev, category_id: transaction.category_id }));
     }
-  }, [transaction.categoria, categories]);
+  }, [transaction.category_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +61,7 @@ export function EditTransactionDialog({
 
     setLoading(true);
     try {
-      await onEditTransaction(transaction.id!, {
+      await onEditTransaction(transaction.id, {
         description: formData.description.trim(),
         amount: parseFloat(formData.amount),
         type: formData.type,

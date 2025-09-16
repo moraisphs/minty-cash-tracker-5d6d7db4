@@ -54,3 +54,5 @@ ALTER TABLE transactions DISABLE ROW LEVEL SECURITY;
 **Continue usando o app normalmente!** 🎉
 
 
+
+

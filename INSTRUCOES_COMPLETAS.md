@@ -61,3 +61,5 @@ Após a configuração:
 **Após a configuração, os dados serão salvos no Supabase!** 🎉
 
 
+
+

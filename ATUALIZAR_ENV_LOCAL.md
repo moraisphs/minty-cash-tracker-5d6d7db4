@@ -42,3 +42,5 @@ Após atualizar com a chave correta:
 **Atualize o arquivo .env.local agora!** 🎉
 
 
+
+

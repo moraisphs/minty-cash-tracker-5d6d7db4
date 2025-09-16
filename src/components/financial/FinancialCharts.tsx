@@ -1,19 +1,46 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Transacao } from "@/lib/db";
+import { TransactionWithId } from "@/hooks/useSupabase";
 
 interface FinancialChartsProps {
-  transactions: Transacao[];
+  transactions: TransactionWithId[];
 }
 
 export function FinancialCharts({ transactions }: FinancialChartsProps) {
+  if (!transactions || !Array.isArray(transactions)) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 xs:gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Entradas vs Saídas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-48 text-muted-foreground">
+              Nenhum dado disponível
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Gastos por Categoria</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-48 text-muted-foreground">
+              Nenhum dado disponível
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const income = transactions
-    .filter((t) => t.tipo === "entrada")
-    .reduce((sum, t) => sum + t.valor, 0);
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
   
   const expenses = transactions
-    .filter((t) => t.tipo === "saida")
-    .reduce((sum, t) => sum + t.valor, 0);
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
 
   const pieData = [
     { name: "Receitas", value: income, color: "hsl(var(--income))" },
@@ -21,10 +48,10 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
   ];
 
   const categoryExpenses = transactions
-    .filter((t) => t.tipo === "saida")
+    .filter((t) => t.type === "expense")
     .reduce((acc, t) => {
-      const categoryName = t.categoria || "Outros";
-      acc[categoryName] = (acc[categoryName] || 0) + t.valor;
+      const categoryName = t.category_name || "Outros";
+      acc[categoryName] = (acc[categoryName] || 0) + (t.amount || 0);
       return acc;
     }, {} as Record<string, number>);
 
@@ -40,38 +67,46 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
           <CardTitle className="text-lg">Entradas vs Saídas</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
+          {income === 0 && expenses === 0 ? (
+            <div className="flex items-center justify-center h-48 text-muted-foreground">
+              Nenhuma transação encontrada
+            </div>
+          ) : (
+            <>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: number) => [`R$ ${value.toFixed(2)}`, ""]}
+                    labelStyle={{ color: 'hsl(226 20% 15%)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex justify-center space-x-6 mt-4">
                 {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <div key={index} className="flex items-center space-x-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span className="text-sm font-medium">{entry.name}</span>
+                  </div>
                 ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value: number) => [`R$ ${value.toFixed(2)}`, ""]}
-                labelStyle={{ color: 'hsl(226 20% 15%)' }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex justify-center space-x-6 mt-4">
-            {pieData.map((entry, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-sm font-medium">{entry.name}</span>
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -80,29 +115,35 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
           <CardTitle className="text-lg">Gastos por Categoria</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={categoryData}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 12 }}
-                interval={0}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                formatter={(value: number) => [`R$ ${value.toFixed(2)}`, "Gasto"]}
-                labelStyle={{ color: 'hsl(226 20% 15%)' }}
-              />
-              <Bar 
-                dataKey="value" 
-                radius={[4, 4, 0, 0]}
-                fill="hsl(0 65% 55%)"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          {categoryData.length === 0 ? (
+            <div className="flex items-center justify-center h-48 text-muted-foreground">
+              Nenhum gasto por categoria encontrado
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={categoryData}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 12 }}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip 
+                  formatter={(value: number) => [`R$ ${value.toFixed(2)}`, "Gasto"]}
+                  labelStyle={{ color: 'hsl(226 20% 15%)' }}
+                />
+                <Bar 
+                  dataKey="value" 
+                  radius={[4, 4, 0, 0]}
+                  fill="hsl(0 65% 55%)"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </div>
