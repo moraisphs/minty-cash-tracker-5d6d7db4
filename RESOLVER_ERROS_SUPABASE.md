@@ -69,3 +69,4 @@ No painel do Supabase, vá para **Table Editor** e verifique se:
 
 
 
+

@@ -56,3 +56,4 @@ ALTER TABLE transactions DISABLE ROW LEVEL SECURITY;
 
 
 
+
