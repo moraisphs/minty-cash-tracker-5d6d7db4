@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mycash-v6';
+const CACHE_NAME = 'mycash-v7';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -43,6 +43,13 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // Force update of manifest.json
+      return caches.open(CACHE_NAME).then((cache) => {
+        return cache.delete('/manifest.json').then(() => {
+          return cache.add('/manifest.json');
+        });
+      });
     })
   );
 });
