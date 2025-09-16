@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: './', // corrige caminho relativo para assets no Vercel
+  base: '/', // caminho absoluto para Vercel
   server: {
     host: "::",
     port: 8080,
@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    __VITE_BASE_URL__: JSON.stringify('./'),
+    __VITE_BASE_URL__: JSON.stringify('/'),
   },
   publicDir: 'public',
   plugins: [
