@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mycash-v7';
+const CACHE_NAME = 'mycash-v8';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -11,11 +11,21 @@ const urlsToCache = [
 // Install event
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
+    // Clear all caches first
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          console.log('Deleting cache:', cacheName);
+          return caches.delete(cacheName);
+        })
+      );
+    }).then(() => {
+      // Then create new cache
+      return caches.open(CACHE_NAME).then((cache) => {
+        console.log('Opened new cache:', CACHE_NAME);
         return cache.addAll(urlsToCache);
-      })
+      });
+    })
   );
 });
 
