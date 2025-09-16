@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mycash-v4';
+const CACHE_NAME = 'mycash-v5';
 const urlsToCache = [
   '/',
   '/manifest.json',
