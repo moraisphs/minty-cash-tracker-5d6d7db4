@@ -16,6 +16,7 @@ export interface CategoryWithId extends Omit<Category, 'id'> {
 
 export interface TransactionWithId extends Omit<Transaction, 'id'> {
   id: string;
+  category_name?: string;
 }
 
 // UUID fixo para desenvolvimento
@@ -52,7 +53,62 @@ export function useSupabase() {
         { id: '10', name: 'Outros', type: 'expense', is_default: true, user_id: DEFAULT_USER_ID, created_at: new Date().toISOString(), budget_limit: null, icon: null, color: null },
       ];
 
-      setTransactions([]);
+      // Criar transações de exemplo com category_name
+      const sampleTransactions: TransactionWithId[] = [
+        {
+          id: '1',
+          description: 'Salário mensal',
+          amount: 5000,
+          type: 'income',
+          transaction_date: new Date().toISOString().split('T')[0],
+          category_id: '7',
+          category_name: 'Salário',
+          user_id: DEFAULT_USER_ID,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          tags: null,
+          notes: null,
+          is_recurring: false,
+          recurring_config: null,
+          attachment_url: null,
+        },
+        {
+          id: '2',
+          description: 'Supermercado',
+          amount: 350,
+          type: 'expense',
+          transaction_date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+          category_id: '1',
+          category_name: 'Alimentação',
+          user_id: DEFAULT_USER_ID,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          tags: null,
+          notes: null,
+          is_recurring: false,
+          recurring_config: null,
+          attachment_url: null,
+        },
+        {
+          id: '3',
+          description: 'Uber',
+          amount: 25,
+          type: 'expense',
+          transaction_date: new Date(Date.now() - 172800000).toISOString().split('T')[0],
+          category_id: '2',
+          category_name: 'Transporte',
+          user_id: DEFAULT_USER_ID,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          tags: null,
+          notes: null,
+          is_recurring: false,
+          recurring_config: null,
+          attachment_url: null,
+        },
+      ];
+
+      setTransactions(sampleTransactions);
       setCategories(defaultCategories);
       
       console.log('Dados locais carregados');
@@ -73,10 +129,13 @@ export function useSupabase() {
         return;
       }
       
-      // Carregar transações
+      // Carregar transações com informações de categoria
       const { data: transactionsData, error: transactionsError } = await supabase
         .from('transactions')
-        .select('*')
+        .select(`
+          *,
+          categories!inner(name)
+        `)
         .eq('user_id', userId)
         .order('transaction_date', { ascending: false });
 
@@ -100,7 +159,13 @@ export function useSupabase() {
       console.log('Transações carregadas:', transactionsData?.length || 0);
       console.log('Categorias carregadas:', categoriesData?.length || 0);
 
-      setTransactions(transactionsData || []);
+      // Processar transações para incluir category_name
+      const processedTransactions = (transactionsData || []).map(transaction => ({
+        ...transaction,
+        category_name: transaction.categories?.name || 'Outros'
+      }));
+
+      setTransactions(processedTransactions);
       setCategories(categoriesData || []);
 
       // Se não há categorias, criar categorias padrão
