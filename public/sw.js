@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mycash-v3';
+const CACHE_NAME = 'mycash-v4';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -11,7 +11,7 @@ const urlsToCache = [
   '/icon-384.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
-  '/icon.svg',
+  '/browserconfig.xml',
   '/favicon.ico'
 ];
 
